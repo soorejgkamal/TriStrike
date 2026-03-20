@@ -1,0 +1,50 @@
+@using TriStrike.Models
+@inject TriStrike.Services.GameState GameState
+@implements IDisposable
+
+<div class="game-container">
+    <div class="board-wrapper">
+        <div class="triangle-board">
+            @for (int r = 1; r <= GameState.Board.Count; r++)
+            {
+                var row = r;
+                <div class="board-row">
+                    @for (int c = 1; c <= GameState.Board[row - 1].Count; c++)
+                    {
+                        var col = c;
+                        var cell = GameState.Board[row - 1][col - 1];
+                        <CellComponent Cell="@cell" OnCellClicked="@HandleCellClick" />
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <ScoreBoard />
+        <button class="restart-btn" @onclick="RestartGame">🔄 Restart</button>
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        GameState.OnChange += StateHasChanged;
+    }
+
+    private void HandleCellClick(Cell cell)
+    {
+        GameState.StrikeCell(cell.Row, cell.Column);
+        StateHasChanged();
+    }
+
+    private void RestartGame()
+    {
+        GameState.InitializeGame();
+    }
+
+    public void Dispose()
+    {
+        GameState.OnChange -= StateHasChanged;
+    }
+}
