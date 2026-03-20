@@ -134,7 +134,7 @@ code {
 .triangle-board {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 4px;
     padding: 1rem;
     background: #f0f4ff;
@@ -191,6 +191,30 @@ code {
     color: #aa4411;
 }
 
+.cell.struck.player3 {
+    background: #e8ffe0;
+    border-color: #22aa44;
+    color: #116622;
+}
+
+.cell.struck.player4 {
+    background: #fce8ff;
+    border-color: #aa22cc;
+    color: #771199;
+}
+
+.cell.struck.player5 {
+    background: #fff8e0;
+    border-color: #cc9900;
+    color: #886600;
+}
+
+.cell.struck.player6 {
+    background: #ffe0e8;
+    border-color: #cc2244;
+    color: #991133;
+}
+
 .strike-mark {
     font-size: 1.2rem;
     font-weight: bold;
@@ -202,6 +226,22 @@ code {
 
 .cell.struck.player2 .strike-mark {
     color: #aa4411;
+}
+
+.cell.struck.player3 .strike-mark {
+    color: #116622;
+}
+
+.cell.struck.player4 .strike-mark {
+    color: #771199;
+}
+
+.cell.struck.player5 .strike-mark {
+    color: #886600;
+}
+
+.cell.struck.player6 .strike-mark {
+    color: #991133;
 }
 
 .cell-zero {
@@ -346,6 +386,104 @@ code {
 .restart-btn:hover {
     background: #c62828;
     transform: scale(1.04);
+}
+
+/* New Game Button */
+.newgame-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+    font-weight: bold;
+    background: #546e7a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 2px 6px rgba(84,110,122,0.3);
+}
+
+.newgame-btn:hover {
+    background: #37474f;
+    transform: scale(1.04);
+}
+
+/* Setup Screen */
+.setup-screen {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.setup-card {
+    background: #f9faff;
+    border: 2px solid #c0cfe8;
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    min-width: 320px;
+    max-width: 480px;
+    width: 100%;
+}
+
+.setup-title {
+    text-align: center;
+    font-size: 1.6rem;
+    color: #1a1a2e;
+    margin: 0 0 1.5rem 0;
+}
+
+.setup-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+}
+
+.setup-label {
+    font-weight: bold;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.setup-select,
+.setup-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    border: 2px solid #c0cfe8;
+    border-radius: 8px;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.setup-select:focus,
+.setup-input:focus {
+    border-color: #1b6ec2;
+}
+
+.setup-names {
+    margin-top: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.start-btn {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background: #1b6ec2;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 3px 8px rgba(27,110,194,0.35);
+}
+
+.start-btn:hover {
+    background: #155a9e;
+    transform: scale(1.02);
 }
 
 /* Responsive */

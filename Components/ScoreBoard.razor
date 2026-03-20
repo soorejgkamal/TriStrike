@@ -29,11 +29,13 @@
 
     @if (GameState.GameOver)
     {
+        var maxScore = GameState.Players.Max(p => p.Score);
+        var topPlayers = GameState.Players.Where(p => p.Score == maxScore).ToList();
         <div class="game-over">
             <h4>🏆 Game Over!</h4>
-            @if (GameState.Players[0].Score == GameState.Players[1].Score)
+            @if (topPlayers.Count > 1)
             {
-                <p>It's a Draw! Both players scored @GameState.Players[0].Score points.</p>
+                <p>It's a Draw! @string.Join(", ", topPlayers.Select(p => p.Name)) tied with @maxScore points.</p>
             }
             else
             {

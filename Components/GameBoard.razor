@@ -23,6 +23,7 @@
     <div class="sidebar">
         <ScoreBoard />
         <button class="restart-btn" @onclick="RestartGame">🔄 Restart</button>
+        <button class="newgame-btn" @onclick="NewGame">🏠 New Game</button>
     </div>
 </div>
 
@@ -40,7 +41,12 @@
 
     private void RestartGame()
     {
-        GameState.InitializeGame();
+        GameState.RestartGame();
+    }
+
+    private void NewGame()
+    {
+        GameState.ReturnToSetup();
     }
 
     public void Dispose()
