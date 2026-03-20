@@ -95,13 +95,13 @@ public class RoomService
         }
     }
 
-    /// <summary>Removes a room and its subscriptions.</summary>
+    /// <summary>Removes a room. Subscribers should be notified before calling this so they can navigate away.
+    /// Callbacks are cleaned up lazily as subscribers unsubscribe.</summary>
     public void RemoveRoom(string code)
     {
         lock (_lock)
         {
             _rooms.Remove(code);
-            _callbacks.Remove(code);
         }
     }
 
@@ -173,8 +173,12 @@ public class RoomService
         lock (_lock)
         {
             var key = roomCode.Trim();
-            if (_callbacks.ContainsKey(key))
-                _callbacks[key].RemoveAll(c => c.SessionId == sessionId);
+            if (_callbacks.TryGetValue(key, out var list))
+            {
+                list.RemoveAll(c => c.SessionId == sessionId);
+                if (list.Count == 0)
+                    _callbacks.Remove(key);
+            }
         }
     }
 
@@ -190,13 +194,11 @@ public class RoomService
                 : new();
         }
 
-        var tasks = callbacks.Select(cb => Task.Run(async () =>
+        foreach (var cb in callbacks)
         {
             try { await cb(); }
             catch { /* ignore errors from individual subscriber callbacks */ }
-        }));
-
-        await Task.WhenAll(tasks);
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

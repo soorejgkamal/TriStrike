@@ -67,6 +67,7 @@ else
     private async Task HandleCellClick(TriStrike.Models.Cell cell)
     {
         await RoomService.StrikeCellAsync(RoomCode, SessionService.SessionId, cell.Row, cell.Column);
+        StateHasChanged();
     }
 
     private async Task RestartGame()
