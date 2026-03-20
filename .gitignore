@@ -1,0 +1,21 @@
+## .gitignore for .NET / Blazor WebAssembly project
+
+# Build output
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+.vs/
+
+# Visual Studio Code
+.vscode/
+
+# Rider
+.idea/
+
+# NuGet
+*.nupkg
+*.nuspec
+packages/

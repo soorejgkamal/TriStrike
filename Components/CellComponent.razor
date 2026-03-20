@@ -1,0 +1,31 @@
+@using TriStrike.Models
+@inject TriStrike.Services.GameState GameState
+
+<div class="cell @(Cell.IsStruck ? "struck" : "") @(Cell.IsStruck ? $"player{Cell.StrikenByPlayer}" : "")"
+     @onclick="HandleClick"
+     title="Row @Cell.Row, Col @Cell.Column">
+    @if (Cell.IsStruck)
+    {
+        <span class="strike-mark">✕</span>
+    }
+    else
+    {
+        <span class="cell-zero">0</span>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Cell Cell { get; set; } = default!;
+    
+    [Parameter]
+    public EventCallback<Cell> OnCellClicked { get; set; }
+
+    private async Task HandleClick()
+    {
+        if (!Cell.IsStruck && !GameState.GameOver)
+        {
+            await OnCellClicked.InvokeAsync(Cell);
+        }
+    }
+}

@@ -1,0 +1,80 @@
+@using TriStrike.Models
+@inject TriStrike.Services.GameState GameState
+@implements IDisposable
+
+<div class="scoreboard">
+    <h3>Scoreboard</h3>
+    <div class="players">
+        @foreach (var player in GameState.Players)
+        {
+            <div class="player-card @(IsCurrentPlayer(player) ? "active" : "")">
+                <div class="player-name">
+                    @player.Name
+                    @if (IsCurrentPlayer(player) && !GameState.GameOver)
+                    {
+                        <span class="turn-indicator">▶ Your Turn</span>
+                    }
+                </div>
+                <div class="player-score">Score: <strong>@player.Score</strong></div>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(GameState.LastMoveMessage))
+    {
+        <div class="message-toast">
+            @GameState.LastMoveMessage
+        </div>
+    }
+
+    @if (GameState.GameOver)
+    {
+        <div class="game-over">
+            <h4>🏆 Game Over!</h4>
+            @if (GameState.Players[0].Score == GameState.Players[1].Score)
+            {
+                <p>It's a Draw! Both players scored @GameState.Players[0].Score points.</p>
+            }
+            else
+            {
+                <p><strong>@GameState.Winner?.Name</strong> wins with @GameState.Winner?.Score points!</p>
+            }
+        </div>
+    }
+
+    <div class="completed-lines">
+        <h4>Completed Lines (@GameState.CompletedLines.Count)</h4>
+        @if (GameState.CompletedLines.Count == 0)
+        {
+            <p class="no-lines">No lines completed yet.</p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var line in GameState.CompletedLines.TakeLast(5))
+                {
+                    <li>@line.Type line (length @line.Length)</li>
+                }
+                @if (GameState.CompletedLines.Count > 5)
+                {
+                    <li>...and @(GameState.CompletedLines.Count - 5) more</li>
+                }
+            </ul>
+        }
+    </div>
+</div>
+
+@code {
+    private bool IsCurrentPlayer(Player player)
+        => !GameState.GameOver && GameState.Players[GameState.CurrentPlayerIndex].Id == player.Id;
+
+    protected override void OnInitialized()
+    {
+        GameState.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        GameState.OnChange -= StateHasChanged;
+    }
+}
