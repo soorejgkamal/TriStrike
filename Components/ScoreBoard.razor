@@ -1,18 +1,20 @@
 @using TriStrike.Models
-@inject TriStrike.Services.GameState GameState
-@implements IDisposable
 
 <div class="scoreboard">
     <h3>Scoreboard</h3>
     <div class="players">
         @foreach (var player in GameState.Players)
         {
-            <div class="player-card @(IsCurrentPlayer(player) ? "active" : "")">
+            <div class="player-card @(IsCurrentPlayer(player) ? "active" : "") @(IsMyPlayer(player) ? "my-player" : "")">
                 <div class="player-name">
                     @player.Name
+                    @if (IsMyPlayer(player))
+                    {
+                        <span class="you-badge">You</span>
+                    }
                     @if (IsCurrentPlayer(player) && !GameState.GameOver)
                     {
-                        <span class="turn-indicator">▶ Your Turn</span>
+                        <span class="turn-indicator">▶ Turn</span>
                     }
                 </div>
                 <div class="player-score">Score: <strong>@player.Score</strong></div>
@@ -59,7 +61,7 @@
                 }
                 @if (GameState.CompletedLines.Count > 5)
                 {
-                    <li>...and @(GameState.CompletedLines.Count - 5) more</li>
+                    <li>…and @(GameState.CompletedLines.Count - 5) more</li>
                 }
             </ul>
         }
@@ -67,16 +69,15 @@
 </div>
 
 @code {
+    [CascadingParameter(Name = "GameState")]
+    public GameState GameState { get; set; } = default!;
+
+    [CascadingParameter(Name = "MyPlayerIndex")]
+    public int MyPlayerIndex { get; set; }
+
     private bool IsCurrentPlayer(Player player)
         => !GameState.GameOver && GameState.Players[GameState.CurrentPlayerIndex].Id == player.Id;
 
-    protected override void OnInitialized()
-    {
-        GameState.OnChange += StateHasChanged;
-    }
-
-    public void Dispose()
-    {
-        GameState.OnChange -= StateHasChanged;
-    }
+    private bool IsMyPlayer(Player player)
+        => player.Id == MyPlayerIndex + 1;
 }

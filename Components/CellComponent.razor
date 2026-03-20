@@ -1,7 +1,6 @@
 @using TriStrike.Models
-@inject TriStrike.Services.GameState GameState
 
-<div class="cell @(Cell.IsStruck ? "struck" : "") @(Cell.IsStruck ? $"player{Cell.StrikenByPlayer}" : "")"
+<div class="cell @(Cell.IsStruck ? "struck" : "") @(Cell.IsStruck ? $"player{Cell.StrikenByPlayer}" : "") @(!Cell.IsStruck && IsMyTurn ? "my-turn" : "")"
      @onclick="HandleClick"
      title="Row @Cell.Row, Col @Cell.Column">
     @if (Cell.IsStruck)
@@ -17,13 +16,19 @@
 @code {
     [Parameter, EditorRequired]
     public Cell Cell { get; set; } = default!;
-    
+
+    [Parameter]
+    public bool IsMyTurn { get; set; }
+
     [Parameter]
     public EventCallback<Cell> OnCellClicked { get; set; }
 
+    [CascadingParameter(Name = "GameState")]
+    public GameState? GameState { get; set; }
+
     private async Task HandleClick()
     {
-        if (!Cell.IsStruck && !GameState.GameOver)
+        if (!Cell.IsStruck && IsMyTurn && GameState?.GameOver == false)
         {
             await OnCellClicked.InvokeAsync(Cell);
         }

@@ -1,0 +1,87 @@
+@page "/game/{RoomCode}"
+@inject TriStrike.Services.RoomService RoomService
+@inject TriStrike.Services.SessionService SessionService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<PageTitle>Game – TriStrike</PageTitle>
+
+@if (room == null || room.GameState == null)
+{
+    <div class="setup-screen">
+        <div class="setup-card">
+            <p>Game not found. <a href="/">Return home</a></p>
+        </div>
+    </div>
+}
+else
+{
+    <h1 class="game-title">⚡ TriStrike</h1>
+
+    <CascadingValue Value="@room.GameState" Name="GameState">
+        <CascadingValue Value="@myPlayerIndex" Name="MyPlayerIndex">
+            <div class="game-container">
+                <div class="board-wrapper">
+                    <GameBoard OnCellClicked="HandleCellClick" />
+                </div>
+
+                <div class="sidebar">
+                    <div class="room-code-badge">Room: <strong>@RoomCode</strong></div>
+                    <ScoreBoard />
+
+                    @if (isHost && room.GameState.GameOver)
+                    {
+                        <button class="restart-btn" @onclick="RestartGame">🔄 Restart</button>
+                    }
+                    <button class="newgame-btn" @onclick="LeaveGame">🏠 Leave</button>
+                </div>
+            </div>
+        </CascadingValue>
+    </CascadingValue>
+}
+
+@code {
+    [Parameter] public string RoomCode { get; set; } = "";
+
+    private TriStrike.Models.GameRoom? room;
+    private int myPlayerIndex = -1;
+    private bool isHost;
+
+    protected override void OnInitialized()
+    {
+        room = RoomService.GetRoom(RoomCode);
+        if (room == null) return;
+
+        var sessionId = SessionService.SessionId;
+        var me = room.Players.FirstOrDefault(p => p.SessionId == sessionId);
+        myPlayerIndex = me?.PlayerIndex ?? -1;
+        isHost = me?.IsHost ?? false;
+
+        RoomService.Subscribe(RoomCode, sessionId, async () =>
+        {
+            room = RoomService.GetRoom(RoomCode);
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private async Task HandleCellClick(TriStrike.Models.Cell cell)
+    {
+        await RoomService.StrikeCellAsync(RoomCode, SessionService.SessionId, cell.Row, cell.Column);
+    }
+
+    private async Task RestartGame()
+    {
+        await RoomService.RestartGameAsync(RoomCode, SessionService.SessionId);
+    }
+
+    private void LeaveGame()
+    {
+        RoomService.Unsubscribe(RoomCode, SessionService.SessionId);
+        NavigationManager.NavigateTo("/");
+    }
+
+    public void Dispose()
+    {
+        RoomService.Unsubscribe(RoomCode, SessionService.SessionId);
+    }
+}
