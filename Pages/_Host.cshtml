@@ -3,6 +3,31 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     Layout = null;
+
+    // Persist the player's session ID across page reloads using a session
+    // cookie.  The cookie is created on the first visit and remains valid
+    // until the browser tab is closed.  It is passed to the Blazor root
+    // component as a parameter so that SessionService is initialised with
+    // the same ID before any child component (e.g. Game.razor) runs its
+    // OnInitialized lifecycle hook.
+    const string sessionCookieName = "TriStrikeSession";
+    // Read the cookie.  If absent, generate a new ID and persist it so that
+    // the same value is available on every subsequent request (e.g. reload).
+    var cookieSessionId = HttpContext.Request.Cookies[sessionCookieName];
+    if (string.IsNullOrEmpty(cookieSessionId))
+    {
+        cookieSessionId = Guid.NewGuid().ToString("N")[..12];
+        HttpContext.Response.Cookies.Append(sessionCookieName, cookieSessionId, new Microsoft.AspNetCore.Http.CookieOptions
+        {
+            SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
+            IsEssential = true,
+            HttpOnly = true,
+            Secure = true,
+            // No Expires → session cookie; cleared when the browser tab closes.
+        });
+    }
+    // After the block above, cookieSessionId is always a non-null, non-empty string.
+    var sessionId = cookieSessionId;
 }
 
 <!DOCTYPE html>
@@ -18,7 +43,7 @@
     <link href="TriStrike.styles.css" rel="stylesheet" />
 </head>
 <body>
-    <component type="typeof(App)" render-mode="ServerPrerendered" />
+    <component type="typeof(App)" render-mode="ServerPrerendered" param-InitialSessionId="@sessionId" />
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
