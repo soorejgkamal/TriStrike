@@ -1,8 +1,68 @@
-﻿@page "/"
+@page "/"
+@inject TriStrike.Services.GameState GameState
+@implements IDisposable
 
 <PageTitle>TriStrike</PageTitle>
 
 <h1 class="game-title">⚡ TriStrike</h1>
-<p class="game-subtitle">A two-player triangular board game. Complete lines to score points!</p>
+<p class="game-subtitle">A triangular board game. Complete lines to score points!</p>
 
-<GameBoard />
+@if (!GameState.IsGameStarted)
+{
+    <div class="setup-screen">
+        <div class="setup-card">
+            <h2 class="setup-title">Game Setup</h2>
+
+            <div class="setup-field">
+                <label class="setup-label" for="numPlayersSelect">Number of Players</label>
+                <select id="numPlayersSelect" class="setup-select" @bind="numPlayers">
+                    @for (int n = 2; n <= 6; n++)
+                    {
+                        <option value="@n">@n Players</option>
+                    }
+                </select>
+            </div>
+
+            <div class="setup-names">
+                @for (int i = 0; i < numPlayers; i++)
+                {
+                    int idx = i;
+                    <div class="setup-field">
+                        <label class="setup-label">Player @(idx + 1) Name</label>
+                        <input class="setup-input"
+                               type="text"
+                               placeholder="Player @(idx + 1)"
+                               @bind="playerNames[idx]" />
+                    </div>
+                }
+            </div>
+
+            <button class="start-btn" @onclick="StartGame">▶ Start Game</button>
+        </div>
+    </div>
+}
+else
+{
+    <GameBoard />
+}
+
+@code {
+    private int numPlayers = 2;
+    private readonly string[] playerNames = new string[6];
+
+    private void StartGame()
+    {
+        var names = playerNames.Take(numPlayers).ToList();
+        GameState.SetupGame(numPlayers, names);
+    }
+
+    protected override void OnInitialized()
+    {
+        GameState.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        GameState.OnChange -= StateHasChanged;
+    }
+}

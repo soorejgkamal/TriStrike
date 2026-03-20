@@ -15,31 +15,70 @@ public class GameState
     public string? LastMoveMessage { get; private set; }
     public bool GameOver { get; private set; } = false;
     public Player? Winner { get; private set; }
+    public bool IsGameStarted { get; private set; } = false;
 
     public event Action? OnChange;
 
-    public GameState()
+    public GameState() { }
+
+    /// <summary>
+    /// Initializes the game with a custom set of players (2–6).
+    /// </summary>
+    public void SetupGame(int playerCount, List<string> playerNames)
     {
-        InitializeGame();
+        // Pad with default names if fewer names were provided than players requested
+        var paddedNames = playerNames.ToList();
+        while (paddedNames.Count < playerCount)
+            paddedNames.Add($"Player {paddedNames.Count + 1}");
+
+        Players = paddedNames
+            .Take(playerCount)
+            .Select((name, i) => new Player(i + 1, string.IsNullOrWhiteSpace(name) ? $"Player {i + 1}" : name.Trim()))
+            .ToList();
+
+        ResetGameState();
+        IsGameStarted = true;
+        InitializeBoard();
+        NotifyStateChanged();
     }
 
+    /// <summary>
+    /// Restarts the game with the current set of players (resets board and scores).
+    /// </summary>
+    public void RestartGame()
+    {
+        foreach (var p in Players) p.Score = 0;
+        ResetGameState();
+        InitializeBoard();
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Returns to the setup screen.
+    /// </summary>
+    public void ReturnToSetup()
+    {
+        IsGameStarted = false;
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Legacy helper kept for backward compatibility – calls SetupGame with default 2 players.
+    /// </summary>
     public void InitializeGame()
     {
+        SetupGame(2, new List<string> { "Player 1", "Player 2" });
+    }
+
+    private void ResetGameState()
+    {
         Board = new List<List<Cell>>();
-        Players = new List<Player>
-        {
-            new Player(1, "Player 1"),
-            new Player(2, "Player 2")
-        };
         CurrentPlayerIndex = 0;
         CompletedLines = new List<Line>();
         CompletedLineKeys = new HashSet<string>();
         LastMoveMessage = null;
         GameOver = false;
         Winner = null;
-
-        InitializeBoard();
-        NotifyStateChanged();
     }
 
     private void InitializeBoard()
