@@ -1,56 +1,39 @@
 @using TriStrike.Models
-@inject TriStrike.Services.GameState GameState
-@implements IDisposable
 
-<div class="game-container">
-    <div class="board-wrapper">
-        <div class="triangle-board">
-            @for (int r = 1; r <= GameState.Board.Count; r++)
+<div class="triangle-board">
+    @for (int r = 1; r <= GameState.Board.Count; r++)
+    {
+        var row = r;
+        <div class="board-row">
+            @for (int c = 1; c <= GameState.Board[row - 1].Count; c++)
             {
-                var row = r;
-                <div class="board-row">
-                    @for (int c = 1; c <= GameState.Board[row - 1].Count; c++)
-                    {
-                        var col = c;
-                        var cell = GameState.Board[row - 1][col - 1];
-                        <CellComponent Cell="@cell" OnCellClicked="@HandleCellClick" />
-                    }
-                </div>
+                var col = c;
+                var cell = GameState.Board[row - 1][col - 1];
+                <CellComponent Cell="@cell"
+                                IsMyTurn="@IsMyTurn"
+                                OnCellClicked="@HandleCellClick" />
             }
         </div>
-    </div>
-
-    <div class="sidebar">
-        <ScoreBoard />
-        <button class="restart-btn" @onclick="RestartGame">🔄 Restart</button>
-        <button class="newgame-btn" @onclick="NewGame">🏠 New Game</button>
-    </div>
+    }
 </div>
 
 @code {
-    protected override void OnInitialized()
-    {
-        GameState.OnChange += StateHasChanged;
-    }
+    [CascadingParameter(Name = "GameState")]
+    public GameState GameState { get; set; } = default!;
 
-    private void HandleCellClick(Cell cell)
-    {
-        GameState.StrikeCell(cell.Row, cell.Column);
-        StateHasChanged();
-    }
+    [CascadingParameter(Name = "MyPlayerIndex")]
+    public int MyPlayerIndex { get; set; }
 
-    private void RestartGame()
-    {
-        GameState.RestartGame();
-    }
+    [Parameter]
+    public EventCallback<Cell> OnCellClicked { get; set; }
 
-    private void NewGame()
-    {
-        GameState.ReturnToSetup();
-    }
+    private bool IsMyTurn => !GameState.GameOver && GameState.CurrentPlayerIndex == MyPlayerIndex;
 
-    public void Dispose()
+    private async Task HandleCellClick(Cell cell)
     {
-        GameState.OnChange -= StateHasChanged;
+        if (IsMyTurn && !cell.IsStruck && !GameState.GameOver)
+        {
+            await OnCellClicked.InvokeAsync(cell);
+        }
     }
 }

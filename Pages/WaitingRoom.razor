@@ -1,0 +1,103 @@
+@page "/waiting/{RoomCode}"
+@inject TriStrike.Services.RoomService RoomService
+@inject TriStrike.Services.SessionService SessionService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<PageTitle>Waiting Room – TriStrike</PageTitle>
+
+<h1 class="game-title">⚡ TriStrike</h1>
+
+@if (room == null)
+{
+    <div class="setup-screen">
+        <div class="setup-card">
+            <p>Room not found. <a href="/">Return home</a></p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="setup-screen">
+        <div class="setup-card waiting-card">
+            <h2 class="setup-title">Waiting Room</h2>
+
+            <div class="room-code-display">
+                <span class="room-code-label">Room Code</span>
+                <span class="room-code">@room.RoomCode</span>
+                <span class="room-code-hint">Share this code with other players</span>
+            </div>
+
+            <div class="waiting-players">
+                <h3>Players (@room.Players.Count / @room.MaxPlayers)</h3>
+
+                @foreach (var player in room.Players)
+                {
+                    <div class="waiting-player-row">
+                        <span class="player-dot @(player.IsHost ? "host-dot" : "joined-dot")"></span>
+                        <span>@player.Name @(player.IsHost ? " 👑 Host" : "")</span>
+                    </div>
+                }
+
+                @for (int i = room.Players.Count; i < room.MaxPlayers; i++)
+                {
+                    <div class="waiting-player-row empty">
+                        <span class="player-dot empty-dot"></span>
+                        <span class="empty-slot">Waiting for player…</span>
+                    </div>
+                }
+            </div>
+
+            <div class="waiting-status">
+                ⏳ Waiting for players… (@room.Players.Count / @room.MaxPlayers joined)
+            </div>
+
+            @if (isHost)
+            {
+                <button class="back-btn cancel-btn" @onclick="CancelRoom">❌ Cancel Room</button>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string RoomCode { get; set; } = "";
+
+    private TriStrike.Models.GameRoom? room;
+    private bool isHost;
+
+    protected override void OnInitialized()
+    {
+        room = RoomService.GetRoom(RoomCode);
+        if (room == null) return;
+
+        var sessionId = SessionService.SessionId;
+        isHost = room.Players.Any(p => p.SessionId == sessionId && p.IsHost);
+
+        RoomService.Subscribe(RoomCode, sessionId, async () =>
+        {
+            room = RoomService.GetRoom(RoomCode);
+
+            if (room?.IsStarted == true)
+            {
+                await InvokeAsync(() => NavigationManager.NavigateTo($"/game/{RoomCode}"));
+            }
+            else
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+    }
+
+    private async Task CancelRoom()
+    {
+        RoomService.RemoveRoom(RoomCode);
+        await RoomService.NotifyRoomChangedAsync(RoomCode);
+        NavigationManager.NavigateTo("/");
+    }
+
+    public void Dispose()
+    {
+        RoomService.Unsubscribe(RoomCode, SessionService.SessionId);
+    }
+}

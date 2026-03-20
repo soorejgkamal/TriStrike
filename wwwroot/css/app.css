@@ -505,3 +505,208 @@ code {
     }
 }
 
+/* ===== Multiplayer / Room Styles ===== */
+
+/* Home page: Create / Join buttons side-by-side */
+.home-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.join-btn {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background: #388e3c;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 3px 8px rgba(56,142,60,0.35);
+}
+
+.join-btn:hover {
+    background: #2e7d32;
+    transform: scale(1.02);
+}
+
+/* Back button */
+.back-btn {
+    display: block;
+    width: 100%;
+    padding: 0.6rem;
+    font-size: 0.95rem;
+    font-weight: bold;
+    background: #90a4ae;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.2s;
+}
+
+.back-btn:hover {
+    background: #607d8b;
+}
+
+/* Error message */
+.error-msg {
+    background: #ffebee;
+    border: 1.5px solid #e57373;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    color: #c62828;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Room code input – monospace, uppercase */
+.code-input {
+    font-family: 'Courier New', monospace;
+    font-size: 1.3rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+/* ── Waiting Room ── */
+.waiting-card {
+    max-width: 480px;
+}
+
+.room-code-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #e8f0fe;
+    border: 2px solid #5c85d6;
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    margin: 0.5rem 0 1.25rem 0;
+    gap: 0.25rem;
+}
+
+.room-code-label {
+    font-size: 0.8rem;
+    color: #5c6bc0;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.room-code {
+    font-family: 'Courier New', monospace;
+    font-size: 2rem;
+    font-weight: bold;
+    letter-spacing: 0.4em;
+    color: #1a237e;
+}
+
+.room-code-hint {
+    font-size: 0.78rem;
+    color: #7986cb;
+}
+
+.waiting-players h3 {
+    font-size: 1rem;
+    color: #333;
+    margin: 0 0 0.5rem 0;
+}
+
+.waiting-player-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.35rem;
+    background: #f5f5f5;
+    font-size: 0.95rem;
+}
+
+.waiting-player-row.empty {
+    background: #fafafa;
+    color: #bbb;
+    font-style: italic;
+}
+
+.player-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.host-dot   { background: #f9a825; }
+.joined-dot { background: #43a047; }
+.empty-dot  { background: #ccc; border: 1px dashed #aaa; }
+
+.empty-slot {
+    color: #aaa;
+}
+
+.waiting-status {
+    text-align: center;
+    padding: 0.6rem;
+    font-size: 0.95rem;
+    color: #555;
+    background: #f0f4ff;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.cancel-btn {
+    background: #e53935;
+    margin-top: 0.75rem;
+}
+
+.cancel-btn:hover {
+    background: #c62828;
+}
+
+/* ── In-game: room code badge ── */
+.room-code-badge {
+    background: #e8f0fe;
+    border: 1.5px solid #5c85d6;
+    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    color: #1a237e;
+    text-align: center;
+    letter-spacing: 0.05em;
+}
+
+/* ── In-game: "You" badge on scoreboard ── */
+.you-badge {
+    display: inline-block;
+    background: #43a047;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 0 0.4rem;
+    border-radius: 4px;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+}
+
+/* ── Turn enforcement: highlight clickable cells for current player ── */
+.cell.my-turn:hover:not(.struck) {
+    background: #b3f0c2;
+    border-color: #2e7d32;
+    box-shadow: 0 4px 8px rgba(46,125,50,0.3);
+}
+
+/* Dim cells when it's not your turn */
+.cell:not(.struck):not(.my-turn) {
+    opacity: 0.75;
+    cursor: not-allowed;
+}
+
+

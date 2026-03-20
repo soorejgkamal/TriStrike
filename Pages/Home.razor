@@ -1,17 +1,35 @@
 @page "/"
-@inject TriStrike.Services.GameState GameState
-@implements IDisposable
+@inject TriStrike.Services.RoomService RoomService
+@inject TriStrike.Services.SessionService SessionService
+@inject NavigationManager NavigationManager
 
 <PageTitle>TriStrike</PageTitle>
 
 <h1 class="game-title">⚡ TriStrike</h1>
 <p class="game-subtitle">A triangular board game. Complete lines to score points!</p>
 
-@if (!GameState.IsGameStarted)
+@if (mode == "home")
 {
     <div class="setup-screen">
         <div class="setup-card">
-            <h2 class="setup-title">Game Setup</h2>
+            <h2 class="setup-title">Multiplayer</h2>
+            <div class="home-buttons">
+                <button class="start-btn" @onclick='() => SetMode("create")'>🎮 Create Room</button>
+                <button class="join-btn"  @onclick='() => SetMode("join")'>🔗 Join Room</button>
+            </div>
+        </div>
+    </div>
+}
+else if (mode == "create")
+{
+    <div class="setup-screen">
+        <div class="setup-card">
+            <h2 class="setup-title">Create Room</h2>
+
+            <div class="setup-field">
+                <label class="setup-label">Your Name</label>
+                <input class="setup-input" type="text" placeholder="Enter your name" @bind="hostName" @bind:event="oninput" />
+            </div>
 
             <div class="setup-field">
                 <label class="setup-label" for="numPlayersSelect">Number of Players</label>
@@ -23,46 +41,99 @@
                 </select>
             </div>
 
-            <div class="setup-names">
-                @for (int i = 0; i < numPlayers; i++)
-                {
-                    int idx = i;
-                    <div class="setup-field">
-                        <label class="setup-label">Player @(idx + 1) Name</label>
-                        <input class="setup-input"
-                               type="text"
-                               placeholder="Player @(idx + 1)"
-                               @bind="playerNames[idx]" />
-                    </div>
-                }
-            </div>
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-msg">@errorMessage</div>
+            }
 
-            <button class="start-btn" @onclick="StartGame">▶ Start Game</button>
+            <button class="start-btn" @onclick="CreateRoom">▶ Create Room</button>
+            <button class="back-btn"  @onclick='() => SetMode("home")'>← Back</button>
         </div>
     </div>
 }
-else
+else if (mode == "join")
 {
-    <GameBoard />
+    <div class="setup-screen">
+        <div class="setup-card">
+            <h2 class="setup-title">Join Room</h2>
+
+            <div class="setup-field">
+                <label class="setup-label">Room Code</label>
+                <input class="setup-input code-input" type="text" placeholder="6-character code"
+                       @bind="joinCode" @bind:event="oninput" maxlength="6" />
+            </div>
+
+            <div class="setup-field">
+                <label class="setup-label">Your Name</label>
+                <input class="setup-input" type="text" placeholder="Enter your name"
+                       @bind="joinName" @bind:event="oninput" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-msg">@errorMessage</div>
+            }
+
+            <button class="start-btn" @onclick="JoinRoom">🔗 Join Room</button>
+            <button class="back-btn"  @onclick='() => SetMode("home")'>← Back</button>
+        </div>
+    </div>
 }
 
 @code {
+    private string mode = "home";
+    private string hostName = "";
     private int numPlayers = 2;
-    private readonly string[] playerNames = new string[6];
+    private string joinCode = "";
+    private string joinName = "";
+    private string? errorMessage;
 
-    private void StartGame()
+    private void SetMode(string newMode)
     {
-        var names = playerNames.Take(numPlayers).ToList();
-        GameState.SetupGame(numPlayers, names);
+        mode = newMode;
+        errorMessage = null;
     }
 
-    protected override void OnInitialized()
+    private async Task CreateRoom()
     {
-        GameState.OnChange += StateHasChanged;
+        if (string.IsNullOrWhiteSpace(hostName))
+        {
+            errorMessage = "Please enter your name.";
+            return;
+        }
+
+        var room = RoomService.CreateRoom(numPlayers, hostName, SessionService.SessionId);
+        NavigationManager.NavigateTo($"/waiting/{room.RoomCode}");
     }
 
-    public void Dispose()
+    private async Task JoinRoom()
     {
-        GameState.OnChange -= StateHasChanged;
+        if (string.IsNullOrWhiteSpace(joinCode))
+        {
+            errorMessage = "Please enter a room code.";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(joinName))
+        {
+            errorMessage = "Please enter your name.";
+            return;
+        }
+
+        var code = joinCode.Trim().ToUpper();
+        var (room, error) = RoomService.JoinRoom(code, joinName, SessionService.SessionId);
+        if (error != null)
+        {
+            errorMessage = error;
+            return;
+        }
+
+        // Notify all waiting players (including Alice) that room state changed.
+        // For a 2-player room this auto-navigates Alice to the game page.
+        await RoomService.NotifyRoomChangedAsync(room!.RoomCode);
+
+        if (room.IsStarted)
+            NavigationManager.NavigateTo($"/game/{room.RoomCode}");
+        else
+            NavigationManager.NavigateTo($"/waiting/{room.RoomCode}");
     }
 }
