@@ -78,7 +78,11 @@ else
         {
             room = RoomService.GetRoom(RoomCode);
 
-            if (room?.IsStarted == true)
+            if (room == null)
+            {
+                await InvokeAsync(() => NavigationManager.NavigateTo("/"));
+            }
+            else if (room.IsStarted)
             {
                 await InvokeAsync(() => NavigationManager.NavigateTo($"/game/{RoomCode}"));
             }
