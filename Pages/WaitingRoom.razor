@@ -65,6 +65,7 @@ else
 
     private TriStrike.Models.GameRoom? room;
     private bool isHost;
+    private bool _navigatedToGame;
 
     protected override void OnInitialized()
     {
@@ -84,6 +85,11 @@ else
             }
             else if (room.IsStarted)
             {
+                // Set the flag before navigating so Dispose() does not
+                // unsubscribe the session – Game.razor's OnInitialized will
+                // have already registered its own callback with the same
+                // session ID and we must not remove it.
+                _navigatedToGame = true;
                 await InvokeAsync(() => NavigationManager.NavigateTo($"/game/{RoomCode}"));
             }
             else
@@ -102,6 +108,10 @@ else
 
     public void Dispose()
     {
-        RoomService.Unsubscribe(RoomCode, SessionService.SessionId);
+        // Skip unsubscribing when we navigated to the game page: by the time
+        // Dispose() runs, Game.razor has already called Subscribe() with the
+        // same session ID and we must not remove that subscription.
+        if (!_navigatedToGame)
+            RoomService.Unsubscribe(RoomCode, SessionService.SessionId);
     }
 }

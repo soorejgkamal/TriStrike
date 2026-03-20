@@ -1,4 +1,6 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+@inject TriStrike.Services.SessionService SessionService
+
+<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
@@ -10,3 +12,22 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    /// <summary>
+    /// Session ID restored from the host page's persistent cookie.  Set
+    /// synchronously in <see cref="OnInitialized"/> so that the value is
+    /// available to every child component (e.g. Game.razor) before they run
+    /// their own OnInitialized lifecycle hook.
+    /// </summary>
+    [Parameter]
+    public string? InitialSessionId { get; set; }
+
+    protected override void OnInitialized()
+    {
+    // Only call SetSessionId when the host page provided a persisted value;
+    // otherwise the auto-generated default from the constructor remains in use.
+    if (!string.IsNullOrEmpty(InitialSessionId))
+        SessionService.SetSessionId(InitialSessionId);
+    }
+}
