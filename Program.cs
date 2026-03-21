@@ -9,6 +9,7 @@ builder.Services.AddSignalR();
 
 builder.Services.AddSingleton<RoomService>();
 builder.Services.AddScoped<SessionService>();
+builder.Services.AddScoped<GameSettingsService>();
 
 var app = builder.Build();
 
