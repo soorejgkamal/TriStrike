@@ -1,6 +1,8 @@
 @using TriStrike.Models
+@inject IJSRuntime JSRuntime
+@inject TriStrike.Services.GameSettingsService Settings
 
-<div class="cell @(Cell.IsStruck ? "struck" : "") @(Cell.IsStruck ? $"player{Cell.StrikenByPlayer}" : "") @(!Cell.IsStruck && IsMyTurn ? "my-turn" : "")"
+<div class="cell @(Cell.IsStruck ? "struck" : "") @(Cell.IsStruck ? $"player{Cell.StrikenByPlayer}" : "") @(!Cell.IsStruck && IsMyTurn ? "my-turn" : "") @(Cell.IsAnimating ? "cell-blink" : "") @GetLineClasses()"
      @onclick="HandleClick"
      title="Row @Cell.Row, Col @Cell.Column">
     @if (Cell.IsStruck)
@@ -26,11 +28,51 @@
     [CascadingParameter(Name = "GameState")]
     public GameState? GameState { get; set; }
 
+    private CancellationTokenSource? _animCts;
+
     private async Task HandleClick()
     {
         if (!Cell.IsStruck && IsMyTurn && GameState?.GameOver == false)
         {
+            if (Settings.SoundEnabled)
+            {
+                await JSRuntime.InvokeVoidAsync("triStrike.playFeedback");
+            }
+
+            if (Settings.AnimationsEnabled)
+            {
+                _animCts?.Cancel();
+                _animCts = new CancellationTokenSource();
+                Cell.IsAnimating = true;
+                _ = ResetAnimationAsync(_animCts.Token);
+            }
+
             await OnCellClicked.InvokeAsync(Cell);
         }
+    }
+
+    private async Task ResetAnimationAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(2000, token);
+            Cell.IsAnimating = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private string GetLineClasses()
+    {
+        if (!Cell.IsStruck || GameState == null) return "";
+        var classes = new HashSet<string>();
+        foreach (var line in GameState.CompletedLines)
+        {
+            if (line.Cells.Any(c => c.Row == Cell.Row && c.Column == Cell.Column))
+            {
+                classes.Add($"line-{line.Type.ToString().ToLower()}");
+            }
+        }
+        return string.Join(" ", classes);
     }
 }

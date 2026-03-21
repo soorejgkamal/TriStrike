@@ -1,4 +1,5 @@
 @using TriStrike.Models
+@inject TriStrike.Services.GameSettingsService Settings
 
 <div class="scoreboard">
     <h3>Scoreboard</h3>
@@ -57,7 +58,7 @@
             <ul>
                 @foreach (var line in GameState.CompletedLines.TakeLast(5))
                 {
-                    <li>@line.Type line (length @line.Length)</li>
+                    <li class="line-entry line-entry-@line.Type.ToString().ToLower()">@line.Type line (length @line.Length)</li>
                 }
                 @if (GameState.CompletedLines.Count > 5)
                 {
@@ -66,6 +67,20 @@
             </ul>
         }
     </div>
+
+    <details class="settings-panel">
+        <summary class="settings-summary">⚙️ Settings</summary>
+        <div class="settings-content">
+            <label class="settings-toggle">
+                <input type="checkbox" checked="@Settings.SoundEnabled" @onchange="ToggleSound" />
+                🔊 Sound
+            </label>
+            <label class="settings-toggle">
+                <input type="checkbox" checked="@Settings.AnimationsEnabled" @onchange="ToggleAnimations" />
+                ✨ Animations
+            </label>
+        </div>
+    </details>
 </div>
 
 @code {
@@ -80,4 +95,16 @@
 
     private bool IsMyPlayer(Player player)
         => player.Id == MyPlayerIndex + 1;
+
+    private void ToggleSound(ChangeEventArgs e)
+    {
+        Settings.SoundEnabled = e.Value is bool b1 && b1;
+        Settings.NotifyChanged();
+    }
+
+    private void ToggleAnimations(ChangeEventArgs e)
+    {
+        Settings.AnimationsEnabled = e.Value is bool b2 && b2;
+        Settings.NotifyChanged();
+    }
 }

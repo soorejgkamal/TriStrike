@@ -6,6 +6,7 @@ public class Cell
     public int Column { get; set; }
     public bool IsStruck { get; set; }
     public int? StrikenByPlayer { get; set; }
+    public bool IsAnimating { get; set; }
 
     public Cell(int row, int column)
     {
@@ -13,5 +14,6 @@ public class Cell
         Column = column;
         IsStruck = false;
         StrikenByPlayer = null;
+        IsAnimating = false;
     }
 }

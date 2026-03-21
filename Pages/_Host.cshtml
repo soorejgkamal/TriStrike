@@ -51,5 +51,44 @@
         <a class="dismiss">🗙</a>
     </div>
     <script src="_framework/blazor.server.js"></script>
+    <script>
+        window.triStrike = {
+            _audioCtx: null,
+            _getAudioContext: function () {
+                if (!this._audioCtx) {
+                    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return null;
+                    this._audioCtx = new AudioCtx();
+                }
+                return this._audioCtx;
+            },
+            playFeedback: function () {
+                this._playClickSound();
+                this._vibrate();
+            },
+            _playClickSound: function () {
+                try {
+                    var ctx = this._getAudioContext();
+                    if (!ctx) return;
+                    if (ctx.state === 'suspended') ctx.resume();
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = 660;
+                    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.12);
+                } catch (e) { }
+            },
+            _vibrate: function () {
+                try {
+                    if (navigator.vibrate) navigator.vibrate(50);
+                } catch (e) { }
+            }
+        };
+    </script>
 </body>
 </html>
