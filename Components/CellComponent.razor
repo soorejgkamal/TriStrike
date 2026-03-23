@@ -8,6 +8,10 @@
     @if (Cell.IsStruck)
     {
         <span class="strike-mark">✕</span>
+        @foreach (var lt in GetLineTypes())
+        {
+            <span class="line-overlay @lt"></span>
+        }
     }
     else
     {
@@ -74,5 +78,20 @@
             }
         }
         return string.Join(" ", classes);
+    }
+
+    private IEnumerable<string> GetLineTypes()
+    {
+        if (!Cell.IsStruck || GameState == null) yield break;
+        var seen = new HashSet<string>();
+        foreach (var line in GameState.CompletedLines)
+        {
+            if (line.Cells.Any(c => c.Row == Cell.Row && c.Column == Cell.Column))
+            {
+                var lt = $"line-{line.Type.ToString().ToLower()}";
+                if (seen.Add(lt))
+                    yield return lt;
+            }
+        }
     }
 }

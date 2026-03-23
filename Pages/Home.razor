@@ -59,8 +59,8 @@ else if (mode == "join")
 
             <div class="setup-field">
                 <label class="setup-label">Room Code</label>
-                <input class="setup-input code-input" type="text" placeholder="6-character code"
-                       @bind="joinCode" @bind:event="oninput" maxlength="6" />
+                <input class="setup-input code-input" type="text" placeholder="4-digit code"
+                       @bind="joinCode" @bind:event="oninput" maxlength="4" />
             </div>
 
             <div class="setup-field">
@@ -119,7 +119,7 @@ else if (mode == "join")
             return;
         }
 
-        var code = joinCode.Trim().ToUpper();
+        var code = joinCode.Trim();
         var (room, error) = RoomService.JoinRoom(code, joinName, SessionService.SessionId);
         if (error != null)
         {
