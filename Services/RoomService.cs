@@ -205,16 +205,13 @@ public class RoomService
 
     private string GenerateCode()
     {
-        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         var random = new Random();
         string code;
         lock (_lock)
         {
             do
             {
-                code = new string(Enumerable.Range(0, 6)
-                    .Select(_ => chars[random.Next(chars.Length)])
-                    .ToArray());
+                code = random.Next(1000, 10000).ToString();
             } while (_rooms.ContainsKey(code));
         }
         return code;
